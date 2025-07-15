@@ -72,6 +72,4 @@ url={https://openreview.net/forum?id=2UYZHvXUAH}
 ## 📬 Contact
 
 For questions or feedback, please open an issue or contact:
-📧 [daohieu@comp.nus.edu.sg](mailto:daohieu@comp.nus.edu.sg)
-
----
+[daohieu@comp.nus.edu.sg](mailto:daohieu@comp.nus.edu.sg)
