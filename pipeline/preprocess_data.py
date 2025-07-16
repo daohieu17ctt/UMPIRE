@@ -11,8 +11,8 @@ import argparse
 import pandas as pd
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--question-file", type=str, default="data/vqav2/v2_OpenEnded_mscoco_val2014_questions.json")
-parser.add_argument("--answer-file", type=str, default="data/vqav2/v2_mscoco_val2014_annotations.json")
+parser.add_argument("--question_file", type=str, default="data/vqav2/v2_OpenEnded_mscoco_val2014_questions.json")
+parser.add_argument("--answer_file", type=str, default="data/vqav2/v2_mscoco_val2014_annotations.json")
 parser.add_argument("--outfile", type=str, default="data/vqav2/llava_OpenEnded_mscoco_val2014_questions.jsonl")
 args = parser.parse_args()
 
@@ -52,8 +52,6 @@ for q_obj in question_list:
         "answers": answers_dict[q_id]   
     })
 
-
-# import pdb; pdb.set_trace()
 import jsonlines
 with jsonlines.open(args.outfile, 'w') as writer:
     writer.write_all(new_question_list)

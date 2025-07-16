@@ -26,19 +26,19 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--type_of_question', type=str)
 parser.add_argument('--num_generations_per_prompt', type=int, default=5)
 parser.add_argument('--fraction_of_data_to_use', type=float, default=0.9)
-parser.add_argument('--model-path', type=str, default='facebook/opt-350m')
+parser.add_argument('--model_path', type=str, default='facebook/opt-350m')
 parser.add_argument('--temperature', type=float, default=1.0)
 parser.add_argument('--top_p', type=float, default=1.0)
 parser.add_argument('--dataset', type=str, default='coqa')
 parser.add_argument("--beam_search", action='store_true')
 
 # llava args
-parser.add_argument("--image-folder", type=str, default="")
-parser.add_argument("--question-file", type=str, default="tables/question.jsonl")
-parser.add_argument("--outdir", type=str, default="/home/daohieu/maplecg_nfs/research/VLM/su_vlm/output/")
+parser.add_argument("--image_folder", type=str, default="")
+parser.add_argument("--question_file", type=str, default="tables/question.jsonl")
+parser.add_argument("--outdir", type=str, default="/output/")
 parser.add_argument("--max_new_tokens", type=int, default=256)
-parser.add_argument("--num-chunks", type=int, default=1)
-parser.add_argument("--chunk-idx", type=int, default=0)
+parser.add_argument("--num_chunks", type=int, default=1)
+parser.add_argument("--chunk_idx", type=int, default=0)
 parser.add_argument("--reason", type=str, choices=['cot', 'none'], default=None)
 args = parser.parse_args()
 
@@ -160,8 +160,6 @@ for line in tqdm(questions, total=len(questions)):
                                                             sequence_dict[rouge_type + '_to_target'])
     sequence_dict['internal_embedding'] = embedding
     sequences.append(sequence_dict)     
-    # import pdb; pdb.set_trace() 
-    # break
 
 pathlib.Path(f'{args.outdir}').mkdir(parents=True, exist_ok=True)
 
