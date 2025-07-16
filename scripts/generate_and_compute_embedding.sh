@@ -1,13 +1,13 @@
 # Initialize
 # Initialize model variables
-gpu_list="${CUDA_VISIBLE_DEVICES:-4,5,6,7,4,5,6,7}" # GPU for parallel processing
+gpu_list="${CUDA_VISIBLE_DEVICES:-4,6}" # GPU for parallel processing
 IFS=',' read -ra GPULIST <<< "$gpu_list"
 CHUNKS=${#GPULIST[@]}
 CKPT="llava-v1.5-13b"
 MODEL_PATH='liuhaotian/llava-v1.5-13b'
 SPLIT="llava_OpenEnded_mscoco_val2014" # dataset name split
 IMG_DIR='/home/daohieu/suvlm/data/vqav2/val2014'
-QUES_FILE='data/okvqa/okvqa_processed_25.jsonl' # preprocessed question file
+QUES_FILE='data/okvqa/okvqa_processed.jsonl' # preprocessed question file
 OUTDIR="output_dir" # for saving 
 
 # Process the first chunk (use for small datasets or debugging, or the first run to download the model).
