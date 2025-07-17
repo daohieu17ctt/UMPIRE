@@ -32,13 +32,15 @@ conda activate umpire
 
 ### 3. Data Preparation
 
-Ensure your datasets (OKVQA, VQAv2, AdvVQA) are placed under the `data/` directory in their respective subfolders. If preprocessing is needed, change the question-answer json file path in this script and run it:
+Ensure your datasets (OKVQA, VQAv2, AdVQA) are placed under the `data/` directory in their respective subfolders. If preprocessing is needed, change the question-answer json file path in this script and run it:
 
 ```bash
 bash scripts/preprocess_data.sh
 ```
 
-Please note that this scripts is only used for VQAv2-format dataset, you need to preprocess your own dataset following the format in ```pipeline/vqa_preprocess_data.py```
+Please note that this script is only used for the VQAv2-format datasets (such as OKVQA, VQAv2, AdVQA), you need to preprocess your own dataset following the format in ```pipeline/vqa_preprocess_data.py```
+
+Please download the image for each dataset and prepare the image directory path for the next step. Note that VQAv2 and OKVQA use [COCO-val2014 split](http://images.cocodataset.org/zips/val2014.zip) while AdVQA uses [COCO-val2017 split](http://images.cocodataset.org/zips/val2017.zip).
 
 ### 4. Generate Embeddings & Evaluate
 
