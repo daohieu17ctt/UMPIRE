@@ -56,6 +56,8 @@ bash scripts/compute_umpire_and_evaluate.sh
 
 ## 📚 Citation
 
+Our work was first accepted at the [ICLR 2025 Quantify Uncertainty and Hallucination in Foundation Models (QUESTION) Workshop](https://datafm.github.io/) in Mar 2025, and an expended version was accepted at the [ICML 2025 Workshop on Reliable and Responsible Foundaation Models (R2-FM’25)](https://r2-fm.github.io/).
+
 Please cite our paper:
 
 ```bibtex
