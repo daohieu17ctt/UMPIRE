@@ -18,13 +18,19 @@ def get_avg_length_response(x):
      x_ = np.array([len(i) for i in x])
      return x_.mean()
 
+def get_probability(log_likelihoods):
+    return np.exp(np.sum(log_likelihoods))
+
+def get_LN_probability(log_likelihoods):
+    return np.exp(np.sum(log_likelihoods) / len(log_likelihoods))
+
 def get_normL2_prob(x):
-    # x_ = [np.exp(np.sum(i))/len(i) for i in x] # p_sequence / len(sequence)
+    # x_ = [np.exp(np.sum(i)/len(i)) for i in x] # p_sequence / len(sequence)
     x_ = 1-np.array([np.exp(np.sum(i)) for i in x]) # 1-p_sequence
     return np.linalg.norm(x_, ord=2)
 
 def get_normL1_prob(x):
-    # x_ = np.array([np.exp(np.sum(i))/len(i) for i in x]) # 1-p_sequence
+    # x_ = np.array([np.exp(np.sum(i)/len(i)) for i in x]) # 1-p_sequence
     x_ = 1-np.array([np.exp(np.sum(i)) for i in x]) # 1-p_sequence
     return np.linalg.norm(x_, ord=1) 
 
