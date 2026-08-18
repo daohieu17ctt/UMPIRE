@@ -1,8 +1,8 @@
-# UMPIRE: Uncertainty Quantification for Multimodal Large Language Models
+# UMPIRE: Uncertainty Quantification for Multimodal Large Language Models with Incoherence-adjusted Semantic Volume
 
-**Official repository for the paper: _Uncertainty Quantification for Multimodal Large Language Models_** [[Paper]](https://openreview.net/pdf?id=2UYZHvXUAH)  
+**Official repository for the paper: _Uncertainty Quantification for Multimodal Large Language Models with Incoherence-adjusted Semantic Volume_** [[Paper]](https://arxiv.org/abs/2602.24195)  
 
-**Abstract:** Multimodal Large Language Models (MLLMs) hold promise in tackling challenging multimodal tasks, but may generate seemingly plausible but erroneous output, making them hard to trust and deploy in real-life settings. Generating accurate uncertainty metrics quickly for each MLLM response during inference could enable interventions such as escalating queries with uncertain responses to human experts or larger models for improved performance. However, existing uncertainty quantification methods require external verifiers, additional training, or high computational resources, and struggle to handle scenarios such as out-of-distribution (OOD) or adversarial settings. To overcome these limitations, **we present UMPIRE, an efficient and effective training-free framework to estimate MLLM output uncertainty at inference time without external tools**, by computing metrics based on the diversity of the MLLM’s responses that is augmented with internal indicators of each output’s coherence. We empirically show that our method significantly outperforms benchmarks in predicting incorrect responses and providing calibrated uncertainty estimates, including for OOD, adversarial and domain-specific (e.g., medical radiology) data settings.
+**Abstract:** Despite their capabilities, Multimodal Large Language Models (MLLMs) may produce plausible but erroneous outputs, hindering reliable deployment. Accurate uncertainty metrics could enable escalation of unreliable queries to human experts or larger models for improved performance. However, existing uncertainty metrics have practical constraints, such as being designed only for specific modalities, reliant on external tools, or computationally expensive. **We introduce UMPIRE, a training-free uncertainty quantification framework for MLLMs that works efficiently across various input and output modalities without external tools, relying only on the models' own internal modality features.** UMPIRE computes the incoherence-adjusted semantic volume of sampled MLLM responses for a given task instance, effectively capturing both the global semantic diversity of samples and the local incoherence of responses based on internal model confidence. We propose uncertainty desiderata for MLLMs and provide theoretical analysis motivating UMPIRE's design. Extensive experiments show that UMPIRE consistently outperforms baseline metrics in error detection and uncertainty calibration across image, audio, and video-text benchmarks, including adversarial and out-of-distribution settings. We also demonstrate UMPIRE's generalization to non-text output tasks, including image and audio generation.
 
 ---
 
@@ -79,18 +79,16 @@ bash demo/demo.sh
 
 ## 📚 Citation
 
-Our work was first accepted at the [ICLR 2025 Quantify Uncertainty and Hallucination in Foundation Models (QUESTION) Workshop](https://datafm.github.io/) in Mar 2025, and an expended version was accepted at the [ICML 2025 Workshop on Reliable and Responsible Foundaation Models (R2-FM’25)](https://r2-fm.github.io/).
+Earlier versions of our work were presented at the [ICLR 2025 Quantify Uncertainty and Hallucination in Foundation Models (QUESTION) Workshop](https://datafm.github.io/) in Mar 2025 and the [ICML 2025 Workshop on Reliable and Responsible Foundation Models (R2-FM'25)](https://r2-fm.github.io/).
 
 Please cite our paper:
 
 ```bibtex
-@inproceedings{
-lau2025uncertainty,
-title={Uncertainty Quantification for {MLLM}s},
-author={Gregory Kang Ruey Lau and Hieu Dao and Nicole Kan Hui Lin and Bryan Kian Hsiang Low},
-booktitle={ICML 2025 Workshop on Reliable and Responsible Foundation Models},
-year={2025},
-url={https://openreview.net/forum?id=2UYZHvXUAH}
+@article{lau2026uncertainty,
+  title={Uncertainty quantification for multimodal large language models with incoherence-adjusted semantic volume},
+  author={Lau, Gregory Kang Ruey and Dao, Hieu and Lin, Nicole Kan Hui and Low, Bryan Kian Hsiang},
+  journal={arXiv preprint arXiv:2602.24195},
+  year={2026}
 }
 ```
 
