@@ -1,14 +1,13 @@
-# Initialize
 # Initialize model variables
-gpu_list="${CUDA_VISIBLE_DEVICES:-4,6}" # GPU for parallel processing
+gpu_list="${CUDA_VISIBLE_DEVICES:-0}" # GPU for parallel processing
 IFS=',' read -ra GPULIST <<< "$gpu_list"
 CHUNKS=${#GPULIST[@]}
 CKPT="llava-v1.5-13b"
 MODEL_PATH='liuhaotian/llava-v1.5-13b'
-SPLIT="llava_OpenEnded_mscoco_val2014" # dataset name split
-IMG_DIR='/home/daohieu/suvlm/data/vqav2/val2014'
+SPLIT="okvqa" # dataset name split
+IMG_DIR='data/vqav2/val2014' # image folder (OKVQA and VQAv2 use MSCOCO val2014). Please download images at http://images.cocodataset.org/zips/val2014.zip and put the images in this folder before running the script
 QUES_FILE='data/okvqa/okvqa_processed.jsonl' # preprocessed question file
-OUTDIR="output_dir" # for saving 
+OUTDIR="output" # for saving
 
 # Process the first chunk (use for small datasets or debugging, or the first run to download the model).
 # Uncomment this and run for downloading the model and processor if it is the first run
@@ -23,8 +22,8 @@ CUDA_VISIBLE_DEVICES=${GPULIST[$IDX]} python pipeline/generate_and_compute_emb_h
         --chunk_idx $IDX \
         --temperature 1 \
         --top_p='0.9' \
+        --seed 10 \
         --num_generations_per_prompt=50
-
 
 # Generate and compute embeddings parallelly in background
 # Uncomment the following lines to run in parallel, but need to download the model first.
@@ -38,6 +37,7 @@ CUDA_VISIBLE_DEVICES=${GPULIST[$IDX]} python pipeline/generate_and_compute_emb_h
 #         --chunk_idx $IDX \
 #         --temperature 1 \
 #         --top_p='0.9' \
+#         --seed 10 \
 #         --num_generations_per_prompt=50 &
 # done
 

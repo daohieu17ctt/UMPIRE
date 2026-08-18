@@ -5,8 +5,8 @@ channels:
   - defaults
 dependencies:
   - python=3.10
-  - pytorch=2.7.1
   - pip:
+      - torch
       - absl-py
       - accelerate
       - bitsandbytes
@@ -14,14 +14,19 @@ dependencies:
       - jsonlines
       - matplotlib
       - nltk
+      - numpy
+      - openai
       - pandas
       - pillow
       - protobuf
+      - python-dotenv
       - rouge-score
       - scikit-learn
       - seaborn
       - sentencepiece
       - tabulate
+      - tenacity
+      - tqdm
       - transformers
+      - wandb
       # - flash-attn # Install using `conda install -c conda-forge flash-attn`
-      # - uncertainty-metrics==0.0.81 # Needs to be intalled by first downgrading to pip<24.1 first. Lastly `pip install --upgrade pip`

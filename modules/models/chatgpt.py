@@ -150,35 +150,3 @@ def build_prompt_chatgpt_with_image(text_prompt, image_path, detail='low'):
             ]
         }
     return prompt_message
-
-
-# Example usage:
-if __name__ == "__main__":
-    import pickle
-    file_path = f"/external1/daohieu/save_temp/su_vlm/output/llava_OpenEnded_mscoco_val2014/generation_embedding/llava-v1.5-13b.pkl"
-    img_dir = '/home/daohieu/maplecg_nfs/research/VLM/su_vlm/data/vqav2/val2014'
-    with open(file_path, 'rb') as r:
-        llava_results = pickle.load(r)
-
-    llava_results = llava_results[:100]
-    prefix_prompt='Answer this question in only a word or a phrase. '
-    dataset = [build_prompt_chatgpt_with_image(prefix_prompt + sample['question_text'], os.path.join(img_dir, sample['image'])) for sample in llava_results]
-    
-    async_predictor = AsyncChatGPT()
-    import time
-    start = time.time()
-    responses = async_predictor.predict(dataset, max_workers=20, temperature=1, model='gpt-4o-mini', system_prompt="You are a creative and helpful assistant.", top_p=0.9, n=50, logprobs=True)
-    print(f"Time taken: {time.time() - start:.2f}s")
-    import pdb; pdb.set_trace()
-    for i, (sample, response) in enumerate(zip(dataset, responses)):
-        print(i)
-        print(response)
-        print("")
-        # time.sleep(1)
-    # predictor = ChatGPTPredictor()
-    # for sample in dataset:
-    #     # prompt = build_prompt_chatgpt_with_image(sample['question_text'], os.path.join(img_dir, sample['image']))
-    #     response = predictor.predict(sample, temperature=1, model='gpt-4o', system_prompt="You are a creative and helpful assistant.", top_p=0.9, n=50, logprobs=True)
-    #     import pdb; pdb.set_trace()
-    #     print(response)
-    #     print("")

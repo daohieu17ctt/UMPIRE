@@ -68,7 +68,7 @@ class HuggingfaceModel(BaseModel):
                                                                             model_base=None,
                                                                             model_name=model_sub_name, 
                                                                             load_4bit=True, 
-                                                                            use_flash_attn=True,
+                                                                            use_flash_attn=False,
                                                                             device_map='cuda:0')
             self.tokenizer = tokenizer
             self.model = model

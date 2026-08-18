@@ -10,7 +10,7 @@ from tqdm import tqdm
 import math
 
 import sys
-sys.path.append(".")
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def split_list(lst, n):
     """Split a list into n (roughly) equal-sized chunks"""
@@ -40,12 +40,13 @@ parser.add_argument("--max_new_tokens", type=int, default=256)
 parser.add_argument("--num_chunks", type=int, default=1)
 parser.add_argument("--chunk_idx", type=int, default=0)
 parser.add_argument("--reason", type=str, choices=['cot', 'none'], default=None)
+parser.add_argument("--seed", type=int, default=10)
 args = parser.parse_args()
 
 device = 'cuda'
 
 # Set a seed value
-seed_value = 10
+seed_value = args.seed
 # 1. Set `PYTHONHASHSEED` environment variable at a fixed value
 os.environ['PYTHONHASHSEED'] = str(seed_value)
 # 2. Set `python` built-in pseudo-random generator at a fixed value

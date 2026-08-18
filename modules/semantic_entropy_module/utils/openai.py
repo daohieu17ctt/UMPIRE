@@ -3,7 +3,6 @@ import hashlib
 from tenacity import retry, wait_random_exponential, retry_if_not_exception_type
 import requests
 from dotenv import load_dotenv
-load_dotenv('/home/daohieu/maplecg_nfs/research/VLM/.env')
 
 from openai import OpenAI
 

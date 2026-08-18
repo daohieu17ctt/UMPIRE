@@ -38,18 +38,41 @@ Ensure your datasets (OKVQA, VQAv2, AdVQA) are placed under the `data/` director
 bash scripts/preprocess_data.sh
 ```
 
-Please note that this script is only used for the VQAv2-format datasets (such as OKVQA, VQAv2, AdVQA), you need to preprocess your own dataset following the format in ```pipeline/vqa_preprocess_data.py```
+Please note that this script is only used for the VQAv2-format datasets (such as OKVQA, VQAv2, AdVQA), you need to preprocess your own dataset following the format in ```pipeline/preprocess_data.py```
 
 Please download the image for each dataset and prepare the image directory path for the next step. Note that VQAv2 and OKVQA use [COCO-val2014 split](http://images.cocodataset.org/zips/val2014.zip) while AdVQA uses [COCO-val2017 split](http://images.cocodataset.org/zips/val2017.zip).
 
 ### 4. Generate Embeddings & Evaluate
 
 ```bash
-# Step 1: Generate embeddings
+# Step 1: Generate responses, embeddings and log-likelihoods
 bash scripts/generate_and_compute_embedding.sh
 
-# Step 2: Run UMPIRE evaluation
+# Step 2: Compute UMPIRE (and the baselines) and evaluate
 bash scripts/compute_umpire_and_evaluate.sh
+```
+
+Step 2 reports AUROC, calibrated ECE, Pearson correlation, TPR at fixed FPR, and AURAC for
+UMPIRE alongside three baselines (length-normalized entropy, semantic entropy, eigenscore),
+and writes them to `<output_dir>/umpire_results.json`. Semantic entropy needs a GPU for its
+DeBERTa entailment model; pass `--re_cluster_semantic_entropy` to re-cluster the responses
+from scratch rather than reusing pre-computed `cluster_ids` (this takes a few hours).
+
+**Results for the OKVQA dataset** (`llava-v1.5-13b`, 50 generations per prompt):
+
+|                  |   auc |   cece |   pearsonr |   tpr_at_0.1_fpr |   tpr_at_0.01_fpr |   aurac |
+|:-----------------|------:|-------:|-----------:|-----------------:|------------------:|--------:|
+| ln_entropy       | 0.704 |  0.044 |      0.851 |            0.242 |             0.03  |   0.789 |
+| semantic_entropy | 0.714 |  0.143 |      0.251 |            0.322 |             0.053 |   0.772 |
+| eigen_score      | 0.737 |  0.161 |      0.894 |            0.332 |             0.075 |   0.802 |
+| umpire           | **0.754** |  **0.042** |      **0.964** |            **0.365** |             **0.090** |   **0.808** |
+
+### 5. Single-example demo
+
+To score one image-question pair directly:
+
+```bash
+bash demo/demo.sh
 ```
 
 ---
@@ -76,4 +99,4 @@ url={https://openreview.net/forum?id=2UYZHvXUAH}
 ## 📬 Contact
 
 For questions or feedback, please open an issue or contact:
-[daohieu@comp.nus.edu.sg](mailto:daohieu@comp.nus.edu.sg)
+[daohieu@comp.nus.edu.sg](mailto:daohieu@comp.nus.edu.sg) or [greglau@comp.nus.edu.sg](mailto:greglau@comp.nus.edu.sg)

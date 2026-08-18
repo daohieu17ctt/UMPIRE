@@ -4,19 +4,12 @@ import pickle
 import logging
 
 import numpy as np
-import wandb
 import torch
 import torch.nn.functional as F
 import base64
 
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
-# import sys
-# sys.path.append("/home/daohieu/maplecg_nfs/research/VLM/su_vlm/modules/")
-
-from semantic_entropy_module.models.huggingface_models import HuggingfaceModel
-from semantic_entropy_module.utils import openai as oai
-from semantic_entropy_module.utils import utils
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -72,6 +65,7 @@ class EntailmentLLM(BaseEntailment):
 
         logging.info('Restoring prediction cache from %s', entailment_cache_id)
 
+        import wandb
         api = wandb.Api()
         run = api.run(entailment_cache_id)
         run.file(self.entailment_file).download(
@@ -82,6 +76,7 @@ class EntailmentLLM(BaseEntailment):
 
     def save_prediction_cache(self):
         # Write the dictionary to a pickle file.
+        from .semantic_entropy_module.utils import utils
         utils.save(self.prediction_cache, self.entailment_file)
 
     def check_implication(self, text1, text2, example=None):
@@ -91,6 +86,7 @@ class EntailmentLLM(BaseEntailment):
 
         logging.info('%s input: %s', self.name, prompt)
 
+        from .semantic_entropy_module.utils import openai as oai
         hashed = oai.md5hash(prompt)
         if hashed in self.prediction_cache:
             logging.info('Restoring hashed instead of predicting with model.')
@@ -136,6 +132,7 @@ class EntailmentGPT4(EntailmentLLM):
         return prompt
     
     def predict(self, prompt, image_path=None, temperature=0.02):
+        from .semantic_entropy_module.utils import openai as oai
         if image_path == None:
             return oai.predict(prompt, temperature, model=self.name)
         else:
@@ -162,154 +159,6 @@ class EntailmentGPT4Mini(EntailmentGPT4):
     def __init__(self, entailment_cache_id, entailment_cache_only):
         super().__init__(entailment_cache_id, entailment_cache_only)
         self.name = 'gpt-4o-mini'
-
-class EntailmentLlama(EntailmentLLM):
-
-    def __init__(self, entailment_cache_id, entailment_cache_only, name):
-        super().__init__(entailment_cache_id, entailment_cache_only)
-        self.name = name
-        self.model = HuggingfaceModel(
-            name, stop_sequences='default', max_new_tokens=30)
-
-    def equivalence_prompt(self, text1, text2, question):
-
-        prompt = f"""We are evaluating answers to the question \"{question}\"\n"""
-        prompt += "Here are two possible answers:\n"
-        prompt += f"Possible Answer 1: {text1}\nPossible Answer 2: {text2}\n"
-        prompt += "Does Possible Answer 1 semantically entail Possible Answer 2? Respond only with entailment, contradiction, or neutral.\n"""
-        prompt += "Response:"""
-
-        return prompt
-
-    def predict(self, prompt, temperature):
-        predicted_answer, _, _ = self.model.predict(prompt, temperature)
-        return predicted_answer
-    
-# Llava
-from models.llava_models import HuggingfaceModel as LlavaModel
-from models.vision_models import VisionModel as VisionHuggingfaceModel
-class EntailmentLlava(EntailmentLLM):
-    def __init__(self, entailment_cache_id, entailment_cache_only, name, no_image=False):
-        super().__init__(entailment_cache_id, entailment_cache_only)
-        self.name = name
-        self.model = LlavaModel(
-            name, stop_sequences=[], max_new_tokens=30)
-        self.no_image = no_image
-
-    def equivalence_prompt(self, text1, text2, question):
-
-        prompt = f"""We are evaluating answers to the question \"{question}\"\n"""
-        prompt += "Here are two possible answers:\n"
-        prompt += f"Possible Answer 1: {text1}\nPossible Answer 2: {text2}\n"
-        prompt += "Does Possible Answer 1 semantically entail Possible Answer 2? Respond only one word with entailment, contradiction, or neutral.\n\n"""
-        return prompt
-    
-    def check_implication(self, text1, text2, example=None):
-        '''
-        example = {
-            question,
-            image_path
-        }
-        '''
-        if example is None:
-            raise ValueError
-        prompt = self.equivalence_prompt(text1, text2, example['question'])
-
-        logging.info('%s input: %s', self.name, prompt)
-
-        hashed = oai.md5hash(prompt)
-        if hashed in self.prediction_cache:
-            logging.info('Restoring hashed instead of predicting with model.')
-            response = self.prediction_cache[hashed]
-        else:
-            if self.entailment_cache_only:
-                raise ValueError
-            response = self.predict(prompt, example['image_path'], temperature=0.02)
-            # self.model.predict_prompt_image(prompt, example['image_path'], temperature=0.02, no_image=False)
-            self.prediction_cache[hashed] = response
-        # print(f"text 1 {text1} - text 2 {text2} - response {response}")
-        logging.info('%s prediction: %s', self.name, response)
-
-        binary_response = response.lower()[:30]
-        if 'entailment' in binary_response or 'yes' in binary_response:
-            return 2
-        elif 'neutral' in binary_response:
-            return 1
-        elif 'contradiction' in binary_response:
-            return 0
-        else:
-            logging.warning('MANUAL NEUTRAL!')
-            return 1
-    
-
-    def predict(self, prompt, image_path=None, temperature=0.02, top_p=1):
-        if self.no_image:
-            image_path = None
-        predicted_answer, _, _ = self.model.predict_prompt_image(prompt, image_path, temperature, top_p=top_p)
-        return predicted_answer
-
-
-class EntailmentVision(EntailmentLLM):
-    def __init__(self, entailment_cache_id, entailment_cache_only, name, no_image=False):
-        super().__init__(entailment_cache_id, entailment_cache_only)
-        self.name = name
-        self.model = VisionHuggingfaceModel(
-            name, stop_sequences=[], max_new_tokens=30)
-            # name, stop_sequences='default', max_new_tokens=30)
-        self.no_image = no_image
-
-    def equivalence_prompt(self, text1, text2, question):
-
-        prompt = f"""We are evaluating answers to the question \"{question}\"\n"""
-        prompt += "Here are two possible answers:\n"
-        prompt += f"Possible Answer 1: {text1}\nPossible Answer 2: {text2}\n"
-        prompt += "Does Possible Answer 1 semantically entail Possible Answer 2? Respond only one word with entailment, contradiction, or neutral.\n\n"""
-        return prompt
-    
-    def check_implication(self, text1, text2, example=None):
-        '''
-        example = {
-            question,
-            image_path
-        }
-        '''
-        if example is None:
-            raise ValueError
-        prompt = self.equivalence_prompt(text1, text2, example['question'])
-
-        logging.info('%s input: %s', self.name, prompt)
-
-        hashed = oai.md5hash(prompt)
-        if hashed in self.prediction_cache:
-            logging.info('Restoring hashed instead of predicting with model.')
-            response = self.prediction_cache[hashed]
-        else:
-            if self.entailment_cache_only:
-                raise ValueError
-            response = self.predict(prompt, example['image_path'], temperature=0.02)
-            # self.model.predict_prompt_image(prompt, example['image_path'], temperature=0.02, no_image=False)
-            self.prediction_cache[hashed] = response
-        # print(f"text 1 {text1} - text 2 {text2} - response {response}")
-        logging.info('%s prediction: %s', self.name, response)
-
-        binary_response = response.lower()[:30]
-        if 'entailment' in binary_response or 'yes' in binary_response:
-            return 2
-        elif 'neutral' in binary_response:
-            return 1
-        elif 'contradiction' in binary_response:
-            return 0
-        else:
-            logging.warning('MANUAL NEUTRAL!')
-            return 1
-    
-
-    def predict(self, prompt, image_path=None, temperature=0.02, top_p=1):
-        if self.no_image:
-            image_path = None
-        predicted_answer, _, _ = self.model.predict_prompt_image(prompt, image_path, temperature, top_p=top_p)
-        return predicted_answer
-    
 
 def context_entails_response(context, responses, model):
     votes = []

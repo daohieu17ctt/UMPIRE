@@ -1,5 +1,5 @@
+import sys, os; sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from sklearn import metrics
-
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -31,151 +31,9 @@ def ROC_AUROC(ori_z, other_z):
     AUROC = metrics.auc(fpr, tpr)
     return fpr, tpr, AUROC #, zs, F1
 
-def AUCPR(ori_z, other_z):
-    ori_z = ori_z[~np.isnan(ori_z)]
-    other_z = other_z[~np.isnan(other_z)]
-    labels = np.concatenate([np.zeros(len(ori_z), dtype=bool), np.ones(len(other_z), dtype=bool)])
-    pred = np.concatenate([np.array(ori_z), np.array(other_z)])
-    precision, recall, threshold = metrics.precision_recall_curve(labels, pred)
-    AUCPR = metrics.auc(recall, precision)
-    return recall, precision, AUCPR #, zs, F1
-
-def average_precision(ori_z, other_z):
-    ori_z = ori_z[~np.isnan(ori_z)]
-    other_z = other_z[~np.isnan(other_z)]
-    labels = np.concatenate([np.zeros(len(ori_z), dtype=bool), np.ones(len(other_z), dtype=bool)])
-    pred = np.concatenate([np.array(ori_z), np.array(other_z)])
-    AP = metrics.average_precision_score(labels, pred)
-    return AP
-
-def plot_dist_auc(correct_unc, wrong_unc):
-    plt.figure()
-    bins = 41
-    for data, c, l in zip((correct_unc, wrong_unc), 
-                    ('black','g'),
-                    ("correct", "wrong")):
-        plt.hist(
-            data,
-            # range = rng, 
-            bins = bins, 
-            density = 1, 
-            alpha = 0.2, 
-            color = c,
-            lw = 2,
-            label = l
-            )
-    plt.xlabel("uncertainty")
-    plt.legend()
-    plt.show()
-
-def plot_auc(correct_unc, wrong_unc):
-    plt.figure()
-    fpr, tpr, auc = ROC_AUROC(correct_unc, wrong_unc)
-    plt.plot(fpr, tpr, label=f"AUC={auc:.3f})")
-    plt.xlabel("FPR")
-    plt.ylabel("TPR")
-    plt.legend()
-    plt.show()
-
-def plot_linear_correlation(threshold_list, acc_list, method_name=None, color='blue'):
-    plt.figure()
-    # plt.scatter(threshold_list, acc_list, label='Data Points')
-    X = np.array(threshold_list).reshape(-1, 1)
-    y = np.array(acc_list)
-    r, p_value = pearsonr(X.flatten(), y)
-    print("Pearson: ", r)
-    if method_name == None:
-        label = f"Linear Fit - Pearson {r:.3}"
-    else:
-        label = f"{method_name} - Pearson {r:.3}"
-    sns.regplot(x=X, y=y, scatter=True, color=color, line_kws={'label':label}, scatter_kws={'s':10})
-    plt.xlabel('Uncertainty Score (lower is better)')
-    plt.ylabel('Accuracy Score')
-    # plt.ylim(0.3, 1)
-    plt.title('Accuracy vs Uncertainty correlation')
-    plt.legend()
-    plt.show()
-
-def plot_pearson(uncertainty_scores, accuracies, num_bins=15):
-    # Convert lists to numpy arrays
-    uncertainty_scores = np.array(uncertainty_scores)
-    accuracies = np.array(accuracies)
-    
-    # Initialize lists to hold accuracy and thresholds
-    acc_list = []
-    threshold_list = []
-
-    # Determine uncertainty bins
-    min_unc = uncertainty_scores.min()
-    max_unc = uncertainty_scores.max()
-    bin_boundaries = np.linspace(min_unc, max_unc, num_bins + 1)
-    bin_lowers = bin_boundaries[:-1]
-    bin_lowers[0] = min_unc - 1e-5
-    bin_uppers = bin_boundaries[1:]
-
-    for bin_lower, bin_upper in zip(bin_lowers, bin_uppers):
-        # Find the indices of samples that fall within the current bin
-        indices = np.where((uncertainty_scores > bin_lower) & (uncertainty_scores <= bin_upper))[0]
-        if len(indices) > 0:
-            # Calculate accuracy within this threshold
-            acc = np.sum(accuracies[indices] == 1) / len(indices)
-            acc_list.append(acc)
-            threshold_list.append(bin_lower)
-    
-    # Convert threshold and accuracy lists to numpy arrays for correlation calculation
-    X = np.array(threshold_list)
-    y = np.array(acc_list)
-
-    plot_linear_correlation(X, y)
-
-def compute_pearsonr_cum(uncertainty_scores, accuracies, num_bins=15):
-    """
-    Compute the Pearson correlation coefficient between uncertainty thresholds and accuracy.
-
-    Args:
-        uncertainty_scores (list): List of uncertainty scores.
-        accuracies (list): List of binary accuracy values (1 for correct, 0 for incorrect).
-        num_bins (int): Number of bins to divide the uncertainty scores into.
-
-    Returns:
-        float: Pearson correlation coefficient.
-        float: p-value associated with the Pearson correlation.
-    """
-    # Convert lists to numpy arrays
-    uncertainty_scores = np.array(uncertainty_scores)
-    accuracies = np.array(accuracies)
-    
-    # Initialize lists to hold accuracy and thresholds
-    acc_list = []
-    threshold_list = []
-
-    # Determine uncertainty bins
-    min_unc = uncertainty_scores.min()
-    max_unc = uncertainty_scores.max()
-    unc_bins = np.linspace(min_unc, max_unc, num_bins)
-    
-    # Calculate accuracy for each bin
-    for threshold in unc_bins:
-        # Get indices of entries below the current threshold
-        indices = np.where(uncertainty_scores < threshold)[0]
-        if len(indices) > 0:
-            # Calculate accuracy within this threshold
-            acc = np.sum(accuracies[indices] == 1) / len(indices)
-            acc_list.append(acc)
-            threshold_list.append(threshold)
-    
-    # Convert threshold and accuracy lists to numpy arrays for correlation calculation
-    X = np.array(threshold_list)
-    y = np.array(acc_list)
-    
-    # Calculate Pearson correlation
-    r, p_value = pearsonr(X, y)
-    
-    return r, p_value
-
 def compute_pearsonr(uncertainty_scores, accuracies, num_bins=15):
     """
-    Compute the Pearson correlation coefficient between uncertainty thresholds and accuracy.
+    Compute the Pearson correlation coefficient between uncertainty thresholds and error (1 - accuracy).
 
     Args:
         uncertainty_scores (list): List of uncertainty scores.
@@ -191,7 +49,7 @@ def compute_pearsonr(uncertainty_scores, accuracies, num_bins=15):
     accuracies = np.array(accuracies)
     
     # Initialize lists to hold accuracy and thresholds
-    acc_list = []
+    error_list = []
     threshold_list = []
 
     # Determine uncertainty bins
@@ -208,57 +66,18 @@ def compute_pearsonr(uncertainty_scores, accuracies, num_bins=15):
         if len(indices) > 0:
             # Calculate accuracy within this threshold
             acc = np.sum(accuracies[indices] == 1) / len(indices)
-            acc = 1 - acc # Invert accuracy to match uncertainty (lower uncertainty should mean higher accuracy)
-            acc_list.append(acc)
+            error = 1 - acc # Invert accuracy to match uncertainty (lower uncertainty should mean higher accuracy)
+            error_list.append(error)
             threshold_list.append(bin_lower)
     
     # Convert threshold and accuracy lists to numpy arrays for correlation calculation
     X = np.array(threshold_list)
-    y = np.array(acc_list)
+    y = np.array(error_list)
     
     # Calculate Pearson correlation
     r, p_value = pearsonr(X, y)
     
     return r, p_value
-
-
-
-def compute_spearmanr(uncertainty_scores, accuracies, num_bins=15):
-    # Convert lists to numpy arrays
-    uncertainty_scores = np.array(uncertainty_scores)
-    accuracies = np.array(accuracies)
-    
-    # Initialize lists to hold accuracy and thresholds
-    acc_list = []
-    threshold_list = []
-
-    # Determine uncertainty bins
-    min_unc = uncertainty_scores.min()
-    max_unc = uncertainty_scores.max()
-    bin_boundaries = np.linspace(min_unc, max_unc, num_bins + 1)
-    bin_lowers = bin_boundaries[:-1]
-    bin_lowers[0] = min_unc - 1e-5
-    bin_uppers = bin_boundaries[1:]
-
-    for bin_lower, bin_upper in zip(bin_lowers, bin_uppers):
-        # Find the indices of samples that fall within the current bin
-        indices = np.where((uncertainty_scores > bin_lower) & (uncertainty_scores <= bin_upper))[0]
-        if len(indices) > 0:
-            # Calculate accuracy within this threshold
-            acc = np.sum(accuracies[indices] == 1) / len(indices)
-            acc_list.append(acc)
-            threshold_list.append(bin_lower)
-    
-    # Convert threshold and accuracy lists to numpy arrays for correlation calculation
-    X = np.array(threshold_list)
-    y = np.array(acc_list)
-    
-    
-    # Calculate Pearson correlation
-    r, p_value = spearmanr(X, y)
-    
-    return r, p_value
-
 
 def scale_to_01(arr):
     arr_min = np.min(arr)  # Minimum value of the array
@@ -276,55 +95,14 @@ def scale_to_01(arr):
     
     return scaled_arr
     
-def compute_ece(scores, labels, n_bins=15, is_uncertainty=True):
-    labels = np.array(labels, dtype=int)
-    scores = scale_to_01(scores)
-    # scores = 1 / (1 + np.exp(-scores))
-    if is_uncertainty:
-        probabilities = 1 - np.array(scores)
-        # probabilities = scores
-    else:
-        probabilities = scores
-        # probabilities = 1 - np.array(scores)
-    return um.ece(labels=labels, probs=probabilities, num_bins=n_bins)
-
-    
-def eval_uncertainty_score(outputs, uncertainty_score_list, num_bins=15):
-    exact_list = [x['exact_match'] for x in outputs]
-    tmp_df = pd.DataFrame(zip(exact_list, uncertainty_score_list), columns=['acc', 'unc'])
-    correct_df = tmp_df.loc[tmp_df['acc'] == 1]
-    wrong_df = tmp_df.loc[tmp_df['acc'] == 0]
-    correct_unc = correct_df['unc'].to_numpy()
-    wrong_unc = wrong_df['unc'].to_numpy()
-    acc = len(correct_df)/len(tmp_df)
-    auc = ROC_AUROC(correct_unc, wrong_unc)[-1]
-    print("ACC: ", acc)
-    print("AUROC: ", auc)
-    plot_dist_auc(correct_unc, wrong_unc)
-    plot_auc(correct_unc, wrong_unc)
-    plot_pearson(tmp_df, num_bins)
-    return acc, auc
-
-def compute_metric_eval(outputs, uncertainty_score_list):
-    exact_list = [x['exact_match'] for x in outputs]
-    tmp_df = pd.DataFrame(zip(exact_list, uncertainty_score_list), columns=['acc', 'unc'])
-    correct_df = tmp_df.loc[tmp_df['acc'] == 1]
-    wrong_df = tmp_df.loc[tmp_df['acc'] == 0]
-    correct_unc = correct_df['unc'].to_numpy()
-    wrong_unc = wrong_df['unc'].to_numpy()
-    acc = len(correct_df)/len(tmp_df)
-    auc = ROC_AUROC(correct_unc, wrong_unc)[-1]
-    pearsonr, _ = compute_pearsonr(tmp_df['unc'], tmp_df['acc'])
-    ece = compute_ece(tmp_df['unc'], tmp_df['acc'])
-    return acc, auc, pearsonr, ece
 
 from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.isotonic import IsotonicRegression
 import numpy as np
 import uncertainty_metrics.numpy as um
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler
 
-def bin_unc_and_acc(image_df, unc_column, num_bins=10):
+def bin_unc_and_acc(image_df, eval_col, unc_column, num_bins=10):
     # Determine uncertainty bins
     min_unc = image_df[unc_column].min()
     max_unc = image_df[unc_column].max()
@@ -341,7 +119,7 @@ def bin_unc_and_acc(image_df, unc_column, num_bins=10):
         sliced_df = image_df.loc[(image_df[unc_column] > bin_lower) & (image_df[unc_column] <= bin_upper)]
         if len(sliced_df) > 0:
             # Calculate accuracy within this threshold
-            acc = sliced_df['exact_match'].mean()
+            acc = sliced_df[eval_col].mean()
             acc_list.append(acc)
             threshold_list.append(bin_lower)
     return threshold_list, acc_list
@@ -378,12 +156,10 @@ def get_calibrate_ece(image_df, unc_column, eval_col='exact_match', num_bins=15,
     metric_list = []
     for i in range(num_trail):
         dev_df, test_df = split_balanced_data(image_df, calibration_ratio, random_seed_list[i], balanced=False)
-
         X_dev = dev_df[[unc_column]].to_numpy()
-        x_dev, y_dev = bin_unc_and_acc(dev_df, unc_column, num_bins=num_bins)
+        x_dev, y_dev = bin_unc_and_acc(dev_df, eval_col, unc_column, num_bins=num_bins)
         x_dev = np.array(x_dev).reshape(-1, 1)
         x_test = test_df[[unc_column]].to_numpy().reshape(-1, 1)
-
         if model_type == 'logistic':
             model = LogisticRegression(random_state=random_seed)
             model.fit(x_dev, y_dev)
@@ -401,15 +177,10 @@ def get_calibrate_ece(image_df, unc_column, eval_col='exact_match', num_bins=15,
             else:
                 test_df['u_score'] = X_test
         elif model_type == 'isotonic':
-            # if is_uncertainty:
-            #     iso_reg = IsotonicRegression(increasing=False).fit(x_dev, y_dev)
-            # else:
-            #     iso_reg = IsotonicRegression(increasing=True).fit(x_dev, y_dev)
             iso_reg = IsotonicRegression(increasing='auto', y_max=1, y_min=0, out_of_bounds='clip').fit(x_dev, y_dev)
             test_df['u_score'] = iso_reg.predict(x_test)
         else:
             print("No model")
-
         if ece_mode == 'ece':
             metric = um.ece(probs=test_df['u_score'], labels=test_df[eval_col].astype(int), num_bins=num_bins)
         elif ece_mode == 'ace':
@@ -456,7 +227,7 @@ def compute_auc_arc(df):
     return auc(reject_rates, accuracies)
 
 def compute_aurac_from_image_df(image_df, col, uncertainty=False, eval_col='exact_match'):
-    method_df = create_selective_plot(image_df, unc_col=col, ascending=(not uncertainty), eval_col='exact_match')
+    method_df = create_selective_plot(image_df, unc_col=col, ascending=(not uncertainty), eval_col=eval_col)
     auc_arc = compute_auc_arc(method_df)
     return auc_arc
 
